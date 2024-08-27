@@ -1,7 +1,10 @@
-import urllib.request
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin
+import os
 import sys
+import urllib.request
+import requests
+from urllib.parse import urljoin
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin, urlparse
 
 
 def fetch_webpage(url):
@@ -369,6 +372,65 @@ def convert_relative_to_absolute(html_content, base_url):
 
     return str(soup)
 
+def save_html_with_resources(html_string, save_dir, html_filename):
+    # Create the save directory if it doesn't exist
+    os.makedirs(save_dir, exist_ok=True)
+    
+    # Parse the HTML content
+    soup = BeautifulSoup(html_string, 'html.parser')
+    
+    # Create a subdirectory for resources
+    if html_filename.endswith('.html'):
+        # Remove the '.html' extension and append '_files'
+        resources_dir = html_filename[:-5] + '_files'
+    else:
+        # If the filename doesn't end with '.html', return it unchanged with '_files' appended
+        resources_dir = html_filename + '_files'
+    resources_dir = os.path.join(save_dir, resources_dir)
+    os.makedirs(resources_dir, exist_ok=True)
+    
+    # Define a function to download and replace links
+    def download_and_replace(tag, attribute):
+        url = tag.get(attribute)
+        if url:
+            # Resolve the full URL
+            full_url = urljoin(html_filename, url)
+            # Parse the URL to get the filename
+            parsed_url = urlparse(full_url)
+            filename = os.path.basename(parsed_url.path)
+            local_path = os.path.join(resources_dir, filename)
+            
+            # Download the resource
+            try:
+                response = requests.get(full_url)
+                response.raise_for_status()
+                with open(local_path, 'wb') as file:
+                    file.write(response.content)
+                
+                # Update the tag's attribute to point to the local resource
+                tag[attribute] = os.path.relpath(local_path, save_dir)
+            except requests.RequestException as e:
+                print(f"Failed to download {full_url}: {e}")
+    
+    # Download and replace links for <img> tags
+    for img in soup.find_all('img'):
+        download_and_replace(img, 'src')
+    
+    # Download and replace links for <link> tags (e.g., stylesheets)
+    for link in soup.find_all('link', rel='stylesheet'):
+        download_and_replace(link, 'href')
+    
+    # Download and replace links for <script> tags
+    for script in soup.find_all('script'):
+        download_and_replace(script, 'src')
+    
+    # Save the modified HTML to a file
+    html_path = os.path.join(save_dir, html_filename)
+    with open(html_path, 'w', encoding='utf-8') as file:
+        file.write(str(soup))
+    
+    return html_path
+
 def write_book(base_url):
     """
     Write a full book from project Gutenberg as a single html page.
@@ -395,9 +457,8 @@ def write_book(base_url):
     stylesheet_urls = extract_stylesheet_links(fetch_webpage(base_url))
     full_page = generate_html(meta_tags, book_content, stylesheet_urls, title)
     full_page = convert_relative_to_absolute(full_page, base_url)
-    file_name = f"{author} - {title}.html"#
-    with open(file_name, "wt") as fh:
-        fh.write(full_page)
+    file_name = f"{author} - {title}.html"
+    save_html_with_resources(full_page, ".", file_name)
 
 def main():
     # Check if exactly one command line argument is provided
