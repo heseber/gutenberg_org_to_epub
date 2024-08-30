@@ -5,7 +5,7 @@
 This program is for you if you want to create an eBook (epub) for a book from [Projekt-Gutenberg.org](https://www.projekt-gutenberg.org/).
 
 Here it what it does:
-- Download all chapters, including the table of contents, from a book at [Projekt-Gutenberg.org](https://www.projekt-gutenberg.org/) and merge them into a single HTML file.
+- Download all chapters, including the table of contents, from a book at [Projekt-Gutenberg.org](https://www.projekt-gutenberg.org/) and merge them into a single HTML file after stripping headers, navigation bars etc.
 - Download all resources (images, css files, ...) to a subdirectory of the main html file.
 - Update the resource links in the merged HTML file to point to the local copies. This is required for converting the HTML file to epub with Calibre.
 
