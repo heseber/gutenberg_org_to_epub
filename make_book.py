@@ -199,32 +199,6 @@ def remove_divs_by_class(html_content, target_class):
 
     return str(soup)
 
-def upgrade_headline_tags(html_content):
-    """
-    Replaces all headline tags (h2, h3, h4) with a headline tag one level up.
-
-    Parameters:
-    html_content (str): The HTML content as a string.
-
-    Returns:
-    str: The modified HTML content with upgraded headline tags.
-    """
-    soup = BeautifulSoup(html_content, 'html.parser')
-
-    # Define a mapping of tags to their upgraded versions
-    tag_mapping = {
-        'h2': 'h1',
-        'h3': 'h2',
-        'h4': 'h3'
-    }
-
-    # Iterate over each tag in the mapping and replace it with the upgraded tag
-    for old_tag, new_tag in tag_mapping.items():
-        for tag in soup.find_all(old_tag):
-            tag.name = new_tag
-
-    return str(soup)
-
 def modify_headline_classes(html_content):
     """
     Adds the class "chapter" to all <h1>, <h2> and <h3> tags unless they already have a class "title" or "subtitle" or "author".
@@ -290,7 +264,6 @@ def get_prosa(url):
     if last_hr_index != -1:
         page = page[:last_hr_index]
     # Upgrade heading levels to facilitate creating of TOC in Calibre
-    page = upgrade_headline_tags(page)
     page = modify_headline_classes(page)
     return page
 
