@@ -213,7 +213,7 @@ def modify_headline_classes(html_content):
     soup = BeautifulSoup(html_content, 'html.parser')
 
     # Iterate over all <h1>, <h2> and <h3> tags
-    for tag in soup.find_all(['h1', 'h2', 'h3']):
+    for tag in soup.find_all(['h1', 'h2', 'h3', 'h4']):
         classes = tag.get('class', [])
         # Check if the tag has "title" or "author" class
         if 'title' not in classes and 'author' not in classes and 'subtitle' not in classes:
