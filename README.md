@@ -35,3 +35,5 @@ source .venv/bin/activate
 # The command line argument can be a link to any page of the book
 python make_book.py https://www.projekt-gutenberg.org/........./mybook.html
 ```
+
+Now you are ready to import the main HTML file as a new book into Calibre and to convert it to epub with Calibre.
