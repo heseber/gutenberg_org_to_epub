@@ -2,7 +2,6 @@ import os
 import sys
 import urllib.request
 import requests
-from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 
@@ -20,6 +19,7 @@ def fetch_webpage(url):
     response = urllib.request.urlopen(url)
     html = response.read()
     return html.decode('utf-8')
+
 
 def extract_section(html, tag, class_name=None):
     """
@@ -40,6 +40,7 @@ def extract_section(html, tag, class_name=None):
         sections = soup.find_all(tag)
     return [str(section) for section in sections]
 
+
 def extract_content_by_class(html_content, class_name):
     """
     Extracts the text content from HTML tags of a specific class.
@@ -54,6 +55,7 @@ def extract_content_by_class(html_content, class_name):
     soup = BeautifulSoup(html_content, 'html.parser')
     content_list = [element.get_text(strip=True) for element in soup.find_all(class_=class_name)]
     return content_list
+
 
 def extract_links(anchor_tags):
     """
@@ -72,6 +74,7 @@ def extract_links(anchor_tags):
         if a_tag:
             links.append(a_tag['href'])
     return links
+
 
 def extract_links_and_text(anchor_tags):
     """
@@ -93,6 +96,7 @@ def extract_links_and_text(anchor_tags):
             links_dict[href] = text
     return links_dict
 
+
 def extract_stylesheet_links(html):
     """
     Extracts all stylesheet (CSS) links from an HTML page.
@@ -110,6 +114,7 @@ def extract_stylesheet_links(html):
         if href:
             stylesheet_links.append(href)
     return stylesheet_links
+
 
 def get_chapter_urls(url):
     """
@@ -129,6 +134,7 @@ def get_chapter_urls(url):
     links = extract_links_and_text(anchors)
     links = {f"{url}{key}": value for key, value in links.items()}
     return links
+
 
 def remove_leading_to_class(html_content, target_class):
     """
@@ -153,6 +159,7 @@ def remove_leading_to_class(html_content, target_class):
 
     # If the target element is not found, return the original HTML content
     return html_content
+
 
 def remove_rightmost_div_by_class(html_content, target_class):
     """
@@ -180,6 +187,7 @@ def remove_rightmost_div_by_class(html_content, target_class):
     # If no target <div> tag is found, return the original HTML content
     return html_content
 
+
 def remove_divs_by_class(html_content, target_class):
     """
     Removes all <div> sections of a specific class from an HTML string.
@@ -198,6 +206,7 @@ def remove_divs_by_class(html_content, target_class):
         div.decompose()
 
     return str(soup)
+
 
 def modify_headline_classes(html_content):
     """
@@ -222,25 +231,27 @@ def modify_headline_classes(html_content):
 
     return str(soup)
 
+
 def extract_meta_tags(html_string):
     # Parse the HTML string using BeautifulSoup
     soup = BeautifulSoup(html_string, 'html.parser')
-    
+
     # Initialize an empty dictionary to store meta tags
     meta_tags = {}
-    
+
     # Find all meta tags in the HTML
     for meta in soup.find_all('meta'):
         # Get the 'name' or 'property' attribute as the key
         key = meta.get('name') or meta.get('property')
         # Get the 'content' attribute as the value
         value = meta.get('content')
-        
+
         # If a key is found, add it to the dictionary
         if key and value:
             meta_tags[key] = value
-    
+
     return meta_tags
+
 
 def get_prosa(url):
     """
@@ -267,6 +278,7 @@ def get_prosa(url):
     page = modify_headline_classes(page)
     return page
 
+
 def get_book_content(url):
     """
     Get the pure book content (just the prosa) of a book.
@@ -282,34 +294,36 @@ def get_book_content(url):
     book = "\n".join(book)
     return book
 
+
 def generate_html(meta_tags, main_content, stylesheet_urls, title):
     # Start the HTML document
     html = ['<!DOCTYPE html>', '<html>', '<head>']
-    
+
     # Add the title
     html.append(f'<title>{title}</title>')
-    
+
     # Add meta tags
     for name, content in meta_tags.items():
         html.append(f'<meta name="{name}" content="{content}">')
-    
+
     # Add stylesheet links
     for url in stylesheet_urls:
         html.append(f'<link rel="stylesheet" type="text/css" href="{url}">')
-    
+
     # Close the head section and start the body section
     html.append('</head>')
     html.append('<body>')
-    
+
     # Add the main content
     html.append(main_content)
-    
+
     # Close the body and html tags
     html.append('</body>')
     html.append('</html>')
-    
+
     # Join all parts into a single string
     return '\n'.join(html)
+
 
 def convert_relative_to_absolute(html_content, base_url):
     """
@@ -345,13 +359,14 @@ def convert_relative_to_absolute(html_content, base_url):
 
     return str(soup)
 
+
 def save_html_with_resources(html_string, save_dir, html_filename):
     # Create the save directory if it doesn't exist
     os.makedirs(save_dir, exist_ok=True)
-    
+
     # Parse the HTML content
     soup = BeautifulSoup(html_string, 'html.parser')
-    
+
     # Create a subdirectory for resources
     if html_filename.endswith('.html'):
         # Remove the '.html' extension and append '_files'
@@ -361,7 +376,7 @@ def save_html_with_resources(html_string, save_dir, html_filename):
         resources_dir = html_filename + '_files'
     resources_dir = os.path.join(save_dir, resources_dir)
     os.makedirs(resources_dir, exist_ok=True)
-    
+
     # Define a function to download and replace links
     def download_and_replace(tag, attribute):
         url = tag.get(attribute)
@@ -372,37 +387,38 @@ def save_html_with_resources(html_string, save_dir, html_filename):
             parsed_url = urlparse(full_url)
             filename = os.path.basename(parsed_url.path)
             local_path = os.path.join(resources_dir, filename)
-            
+
             # Download the resource
             try:
                 response = requests.get(full_url)
                 response.raise_for_status()
                 with open(local_path, 'wb') as file:
                     file.write(response.content)
-                
+
                 # Update the tag's attribute to point to the local resource
                 tag[attribute] = os.path.relpath(local_path, save_dir)
             except requests.RequestException as e:
                 print(f"Failed to download {full_url}: {e}")
-    
+
     # Download and replace links for <img> tags
     for img in soup.find_all('img'):
         download_and_replace(img, 'src')
-    
+
     # Download and replace links for <link> tags (e.g., stylesheets)
     for link in soup.find_all('link', rel='stylesheet'):
         download_and_replace(link, 'href')
-    
+
     # Download and replace links for <script> tags
     for script in soup.find_all('script'):
         download_and_replace(script, 'src')
-    
+
     # Save the modified HTML to a file
     html_path = os.path.join(save_dir, html_filename)
     with open(html_path, 'w', encoding='utf-8') as file:
         file.write(str(soup))
-    
+
     return html_path
+
 
 def write_book(base_url):
     """
@@ -433,6 +449,7 @@ def write_book(base_url):
     file_name = f"{author} - {title}.html"
     save_html_with_resources(full_page, ".", file_name)
 
+
 def main():
     # Check if exactly one command line argument is provided
     if len(sys.argv) != 2:
@@ -449,6 +466,7 @@ def main():
 
     # Call the write_book function with the validated base_url
     write_book(base_url)
+
 
 if __name__ == "__main__":
     main()
