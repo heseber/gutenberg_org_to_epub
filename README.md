@@ -30,10 +30,94 @@ pip install -r requirements.txt
 
 ## Usage
 
+### Single Book
+
 ```sh
 source .venv/bin/activate
 # The command line argument can be a link to any page of the book
-python make_book.py https://www.projekt-gutenberg.org/........./mybook.html
+python make_book.py "https://www.projekt-gutenberg.org/........./mybook.html"
+```
+
+### Batch Mode
+
+The program now supports batch processing of multiple books. You can specify URLs directly on the command line or use input files.
+
+#### Multiple URLs on Command Line
+
+```sh
+python make_book.py "https://www.projekt-gutenberg.org/goethe/faust1/faust1.html" "https://www.projekt-gutenberg.org/goethe/faust2/faust2.html"
+```
+
+#### URLs from Text File
+
+Create a text file with one URL per line (see `example_urls.txt`):
+
+```sh
+python make_book.py --file urls.txt
+```
+
+#### URLs from CSV File
+
+Create a CSV file with URLs in the first column or in a column named 'url' (see `example_urls.csv`):
+
+```sh
+python make_book.py --file urls.csv
+```
+
+#### URLs from JSON File
+
+Create a JSON file with an array of URLs or objects with 'url' field (see `example_urls.json` and `example_urls_objects.json`):
+
+```sh
+python make_book.py --file urls.json
+```
+
+#### Additional Options
+
+- `--output-dir` or `-o`: Specify output directory (default: current directory)
+- `--continue-on-error`: Continue processing other URLs if one fails
+
+```sh
+# Save all books to a specific directory
+python make_book.py --file urls.txt --output-dir ./books
+
+# Continue processing even if some books fail
+python make_book.py --file urls.txt --continue-on-error
+```
+
+### Input File Formats
+
+#### Text File (.txt)
+```
+# Comments start with #
+https://www.projekt-gutenberg.org/goethe/faust1/faust1.html
+https://www.projekt-gutenberg.org/goethe/faust2/faust2.html
+```
+
+#### CSV File (.csv)
+```csv
+url,title,author
+https://www.projekt-gutenberg.org/goethe/faust1/faust1.html,Faust Part 1,Goethe
+https://www.projekt-gutenberg.org/goethe/faust2/faust2.html,Faust Part 2,Goethe
+```
+
+#### JSON File (.json)
+```json
+[
+  "https://www.projekt-gutenberg.org/goethe/faust1/faust1.html",
+  "https://www.projekt-gutenberg.org/goethe/faust2/faust2.html"
+]
+```
+
+Or with objects:
+```json
+[
+  {
+    "url": "https://www.projekt-gutenberg.org/goethe/faust1/faust1.html",
+    "title": "Faust Part 1",
+    "author": "Goethe"
+  }
+]
 ```
 
 Now you are ready to import the main HTML file as a new book into Calibre and to convert it to epub with Calibre.
